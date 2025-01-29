@@ -124,7 +124,7 @@ reconfigured on the model, and then can be used during querying process.
      end
    end
 
-   user = User.with(:last_comment).first
+   user = User.auxiliary_statements(:last_comment).first
 
   {Learn more}[link:classes/Torque/PostgreSQL/AuxiliaryStatement.html]
 

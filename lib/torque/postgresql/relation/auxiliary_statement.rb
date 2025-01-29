@@ -11,18 +11,15 @@ module Torque
         def auxiliary_statements_values=(value); set_value(:auxiliary_statements, value); end
 
         # Set use of an auxiliary statement
-        def with(*args, **settings)
-          spawn.with!(*args, **settings)
+        def auxiliary_statements(*args, **settings)
+          spawn.auxiliary_statements!(*args, **settings)
         end
 
-        # Like #with, but modifies relation in place.
-        def with!(*args, **settings)
+        # Like #auxiliary_statements, but modifies relation in place.
+        def auxiliary_statements!(*args, **settings)
           instantiate_auxiliary_statements(*args, **settings)
           self
         end
-
-        alias_method :auxiliary_statements, :with
-        alias_method :auxiliary_statements!, :with!
 
         # Get all auxiliary statements bound attributes and the base bound
         # attributes as well

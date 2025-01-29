@@ -11,7 +11,7 @@ RSpec.describe 'AuxiliaryStatement' do
     subject { klass.unscoped }
 
     it 'has its method' do
-      expect(subject).to respond_to(:with)
+      expect(subject).to respond_to(:auxiliary_statements)
     end
 
     it 'can perform simple queries' do
@@ -24,7 +24,7 @@ RSpec.describe 'AuxiliaryStatement' do
       result << ' (SELECT "comments"."content" AS comment_content, "comments"."user_id" FROM "comments")'
       result << ' SELECT "users".*, "comments"."comment_content" FROM "users"'
       result << ' INNER JOIN "comments" ON "comments"."user_id" = "users"."id"'
-      expect(subject.with(:comments).arel.to_sql).to eql(result)
+      expect(subject.auxiliary_statements(:comments).arel.to_sql).to eql(result)
     end
 
     it 'can perform more complex queries' do
@@ -39,7 +39,7 @@ RSpec.describe 'AuxiliaryStatement' do
       result << ' "comments"."id" DESC) SELECT "users".*,'
       result << ' "comments"."last_comment" FROM "users" INNER JOIN "comments"'
       result << ' ON "comments"."user_id" = "users"."id"'
-      expect(subject.with(:comments).arel.to_sql).to eql(result)
+      expect(subject.auxiliary_statements(:comments).arel.to_sql).to eql(result)
     end
 
     it 'accepts extra select columns' do
@@ -52,7 +52,7 @@ RSpec.describe 'AuxiliaryStatement' do
       result << ' (SELECT "comments"."content" AS comment_content, "comments"."slug" AS comment_slug, "comments"."user_id" FROM "comments")'
       result << ' SELECT "users".*, "comments"."comment_content", "comments"."comment_slug" FROM "users"'
       result << ' INNER JOIN "comments" ON "comments"."user_id" = "users"."id"'
-      expect(subject.with(:comments, select: {slug: :comment_slug}).arel.to_sql).to eql(result)
+      expect(subject.auxiliary_statements(:comments, select: {slug: :comment_slug}).arel.to_sql).to eql(result)
     end
 
     it 'accepts extra join columns' do
@@ -65,7 +65,7 @@ RSpec.describe 'AuxiliaryStatement' do
       result << ' (SELECT "comments"."content" AS comment_content, "comments"."user_id", "comments"."active" FROM "comments")'
       result << ' SELECT "users".*, "comments"."comment_content" FROM "users"'
       result << ' INNER JOIN "comments" ON "comments"."user_id" = "users"."id" AND "comments"."active" = "users"."active"'
-      expect(subject.with(:comments, join: {active: :active}).arel.to_sql).to eql(result)
+      expect(subject.auxiliary_statements(:comments, join: {active: :active}).arel.to_sql).to eql(result)
     end
 
     it 'accepts extra conditions' do
@@ -79,7 +79,7 @@ RSpec.describe 'AuxiliaryStatement' do
       result << ' FROM "comments" WHERE "comments"."active" = $1)'
       result << ' SELECT "users".*, "comments"."comment_content" FROM "users"'
       result << ' INNER JOIN "comments" ON "comments"."user_id" = "users"."id"'
-      expect(subject.with(:comments, where: {active: true}).arel.to_sql).to eql(result)
+      expect(subject.auxiliary_statements(:comments, where: {active: true}).arel.to_sql).to eql(result)
     end
 
     it 'accepts scopes from both sides' do
@@ -88,7 +88,7 @@ RSpec.describe 'AuxiliaryStatement' do
         cte.attributes content: :comment_content
       end
 
-      query = subject.where(id: 2).with(:comments)
+      query = subject.where(id: 2).auxiliary_statements(:comments)
 
       result = 'WITH "comments" AS'
       result << ' (SELECT "comments"."content" AS comment_content, "comments"."user_id" FROM "comments"'
@@ -111,7 +111,7 @@ RSpec.describe 'AuxiliaryStatement' do
       result << ' (SELECT MAX(id) AS comment_id, "comments"."user_id" FROM "comments")'
       result << ' SELECT "users".*, "comments"."comment_id" FROM "users"'
       result << ' INNER JOIN "comments" ON "comments"."user_id" = "users"."id"'
-      expect(subject.with(:comments).arel.to_sql).to eql(result)
+      expect(subject.auxiliary_statements(:comments).arel.to_sql).to eql(result)
     end
 
     it 'accepts complex string as attributes' do
@@ -124,7 +124,7 @@ RSpec.describe 'AuxiliaryStatement' do
       result << ' (SELECT ROW_NUMBER() OVER (PARTITION BY ORDER BY "comments"."id") AS comment_id, "comments"."user_id" FROM "comments")'
       result << ' SELECT "users".*, "comments"."comment_id" FROM "users"'
       result << ' INNER JOIN "comments" ON "comments"."user_id" = "users"."id"'
-      expect(subject.with(:comments).arel.to_sql).to eql(result)
+      expect(subject.auxiliary_statements(:comments).arel.to_sql).to eql(result)
     end
 
     it 'accepts arel attribute as attributes' do
@@ -137,7 +137,7 @@ RSpec.describe 'AuxiliaryStatement' do
       result << ' (SELECT MIN("comments"."id") AS comment_id, "comments"."user_id" FROM "comments")'
       result << ' SELECT "users".*, "comments"."comment_id" FROM "users"'
       result << ' INNER JOIN "comments" ON "comments"."user_id" = "users"."id"'
-      expect(subject.with(:comments).arel.to_sql).to eql(result)
+      expect(subject.auxiliary_statements(:comments).arel.to_sql).to eql(result)
     end
 
     it 'accepts custom join properties' do
@@ -151,7 +151,7 @@ RSpec.describe 'AuxiliaryStatement' do
       result << ' "comments"."id", "comments"."col" FROM "comments") SELECT "users".*,'
       result << ' "comments"."comment_content" FROM "users" INNER JOIN "comments"'
       result << ' ON "comments"."id" = "users"."name" AND "comments"."col" = "a"."col"'
-      expect(subject.with(:comments).arel.to_sql).to eql(result)
+      expect(subject.auxiliary_statements(:comments).arel.to_sql).to eql(result)
     end
 
     it 'can perform other types of joins' do
@@ -165,7 +165,7 @@ RSpec.describe 'AuxiliaryStatement' do
       result << ' "comments"."user_id" FROM "comments") SELECT "users".*,'
       result << ' "comments"."comment_content" FROM "users" LEFT OUTER JOIN "comments"'
       result << ' ON "comments"."user_id" = "users"."id"'
-      expect(subject.with(:comments).arel.to_sql).to eql(result)
+      expect(subject.auxiliary_statements(:comments).arel.to_sql).to eql(result)
     end
 
     it 'can manually define the association' do
@@ -180,7 +180,7 @@ RSpec.describe 'AuxiliaryStatement' do
       result << ' (SELECT "comments"."content" AS sample_content, "comments"."a_user_id" FROM "comments")'
       result << ' SELECT "users".*, "comments"."sample_content" FROM "users"'
       result << ' INNER JOIN "comments" ON "comments"."a_user_id" = "users"."id"'
-      expect(subject.with(:comments).arel.to_sql).to eql(result)
+      expect(subject.auxiliary_statements(:comments).arel.to_sql).to eql(result)
     end
 
     it 'accepts complex scopes from dependencies' do
@@ -195,7 +195,7 @@ RSpec.describe 'AuxiliaryStatement' do
         cte.attributes content: :comment_content2
       end
 
-      query = subject.where(id: 3).with(:comments2)
+      query = subject.where(id: 3).auxiliary_statements(:comments2)
 
       result = 'WITH '
       result << '"comments1" AS (SELECT "comments"."content" AS comment_content1, "comments"."user_id" FROM "comments" WHERE "comments"."id" = $1), '
@@ -230,7 +230,7 @@ RSpec.describe 'AuxiliaryStatement' do
         result << ' SELECT "users".*, "comments1"."comment_content1", "comments2"."comment_content2" FROM "users"'
         result << ' INNER JOIN "comments1" ON "comments1"."user_id" = "users"."id"'
         result << ' INNER JOIN "comments2" ON "comments2"."user_id" = "users"."id"'
-        expect(subject.with(:comments2).arel.to_sql).to eql(result)
+        expect(subject.auxiliary_statements(:comments2).arel.to_sql).to eql(result)
       end
 
       it 'can uses already already set dependent' do
@@ -240,7 +240,7 @@ RSpec.describe 'AuxiliaryStatement' do
         result << ' SELECT "users".*, "comments1"."comment_content1", "comments2"."comment_content2" FROM "users"'
         result << ' INNER JOIN "comments1" ON "comments1"."user_id" = "users"."id"'
         result << ' INNER JOIN "comments2" ON "comments2"."user_id" = "users"."id"'
-        expect(subject.with(:comments1, :comments2).arel.to_sql).to eql(result)
+        expect(subject.auxiliary_statements(:comments1, :comments2).arel.to_sql).to eql(result)
       end
 
       it 'raises an error if the dependent does not exist' do
@@ -249,7 +249,7 @@ RSpec.describe 'AuxiliaryStatement' do
           cte.query Comment.all
           cte.attributes content: :comment_content2
         end
-        expect{ subject.with(:comments2).arel.to_sql }.to raise_error(ArgumentError)
+        expect{ subject.auxiliary_statements(:comments2).arel.to_sql }.to raise_error(ArgumentError)
       end
     end
 
@@ -264,7 +264,7 @@ RSpec.describe 'AuxiliaryStatement' do
         result = 'WITH "comments" AS (SELECT * FROM comments)'
         result << ' SELECT "users".*, "comments"."comment" FROM "users"'
         result << ' INNER JOIN "comments" ON "comments"."user_id" = "users"."id"'
-        expect(subject.with(:comments).arel.to_sql).to eql(result)
+        expect(subject.auxiliary_statements(:comments).arel.to_sql).to eql(result)
       end
 
       it 'accepts arguments to format the query' do
@@ -277,7 +277,7 @@ RSpec.describe 'AuxiliaryStatement' do
         result = "WITH \"comments\" AS (SELECT * FROM comments WHERE active = #{true_value})"
         result << ' SELECT "users".*, "comments"."comment" FROM "users"'
         result << ' INNER JOIN "comments" ON "comments"."user_id" = "users"."id"'
-        expect(subject.with(:comments, args: {active: true}).arel.to_sql).to eql(result)
+        expect(subject.auxiliary_statements(:comments, args: {active: true}).arel.to_sql).to eql(result)
       end
 
       it 'raises an error when join columns are not given' do
@@ -286,7 +286,7 @@ RSpec.describe 'AuxiliaryStatement' do
           cte.attributes content: :comment
         end
 
-        expect{ subject.with(:comments).arel.to_sql }.to raise_error(ArgumentError, /join columns/)
+        expect{ subject.auxiliary_statements(:comments).arel.to_sql }.to raise_error(ArgumentError, /join columns/)
       end
 
       it 'not raises an error when not given the table name as first argument' do
@@ -296,7 +296,7 @@ RSpec.describe 'AuxiliaryStatement' do
           cte.join id: :user_id
         end
 
-        expect{ subject.with(:comments).arel.to_sql }.not_to raise_error
+        expect{ subject.auxiliary_statements(:comments).arel.to_sql }.not_to raise_error
       end
     end
 
@@ -312,7 +312,7 @@ RSpec.describe 'AuxiliaryStatement' do
         result << ' (SELECT "comments"."content" AS comment, "comments"."user_id" FROM "comments")'
         result << ' SELECT "users".*, "comments"."comment" FROM "users"'
         result << ' INNER JOIN "comments" ON "comments"."user_id" = "users"."id"'
-        expect(subject.with(:comments).arel.to_sql).to eql(result)
+        expect(subject.auxiliary_statements(:comments).arel.to_sql).to eql(result)
       end
 
       it 'performs correctly for anything that has a call method' do
@@ -326,7 +326,7 @@ RSpec.describe 'AuxiliaryStatement' do
         result = 'WITH "comments" AS (SELECT * FROM comments)'
         result << ' SELECT "users".*, "comments"."comment" FROM "users"'
         result << ' INNER JOIN "comments" ON "comments"."user_id" = "users"."id"'
-        expect(subject.with(:comments).arel.to_sql).to eql(result)
+        expect(subject.auxiliary_statements(:comments).arel.to_sql).to eql(result)
       end
 
       it 'performs correctly for result as string' do
@@ -339,7 +339,7 @@ RSpec.describe 'AuxiliaryStatement' do
         result = 'WITH "comments" AS (SELECT * FROM comments)'
         result << ' SELECT "users".*, "comments"."comment" FROM "users"'
         result << ' INNER JOIN "comments" ON "comments"."user_id" = "users"."id"'
-        expect(subject.with(:comments).arel.to_sql).to eql(result)
+        expect(subject.auxiliary_statements(:comments).arel.to_sql).to eql(result)
       end
 
       it 'performs correctly when the proc requires arguments' do
@@ -349,7 +349,7 @@ RSpec.describe 'AuxiliaryStatement' do
           cte.join id: :user_id
         end
 
-        query = subject.with(:comments, args: {id: 1})
+        query = subject.auxiliary_statements(:comments, args: {id: 1})
 
         result = 'WITH "comments" AS'
         result << ' (SELECT "comments"."content" AS comment, "comments"."user_id"'
@@ -367,7 +367,7 @@ RSpec.describe 'AuxiliaryStatement' do
           cte.attributes content: :comment
         end
 
-        expect{ subject.with(:comments).arel.to_sql }.to raise_error(ArgumentError, /join columns/)
+        expect{ subject.auxiliary_statements(:comments).arel.to_sql }.to raise_error(ArgumentError, /join columns/)
       end
 
       it 'not raises an error when not given the table name as first argument' do
@@ -377,7 +377,7 @@ RSpec.describe 'AuxiliaryStatement' do
           cte.join id: :user_id
         end
 
-        expect{ subject.with(:comments).arel.to_sql }.not_to raise_error
+        expect{ subject.auxiliary_statements(:comments).arel.to_sql }.not_to raise_error
       end
 
       it 'raises an error when the result of the proc is an invalid type' do
@@ -387,7 +387,7 @@ RSpec.describe 'AuxiliaryStatement' do
           cte.join id: :user_id
         end
 
-        expect{ subject.with(:comments).arel.to_sql }.to raise_error(ArgumentError, /query objects/)
+        expect{ subject.auxiliary_statements(:comments).arel.to_sql }.to raise_error(ArgumentError, /query objects/)
       end
     end
 
@@ -406,7 +406,7 @@ RSpec.describe 'AuxiliaryStatement' do
         result << ' (SELECT "authors"."name" AS author_name, "authors"."id" FROM "authors")'
         result << ' SELECT "activity_books".*, "authors"."author_name" FROM "activity_books"'
         result << ' INNER JOIN "authors" ON "authors"."id" = "activity_books"."author_id"'
-        expect(subject.with(:authors).arel.to_sql).to eql(result)
+        expect(subject.auxiliary_statements(:authors).arel.to_sql).to eql(result)
       end
 
       it 'can replace ancestors auxiliary statements' do
@@ -426,11 +426,11 @@ RSpec.describe 'AuxiliaryStatement' do
         result << ' (SELECT "authors"."type" AS author_type, "authors"."id" FROM "authors")'
         result << ' SELECT "activity_books".*, "authors"."author_type" FROM "activity_books"'
         result << ' INNER JOIN "authors" ON "authors"."id" = "activity_books"."author_id"'
-        expect(subject.with(:authors).arel.to_sql).to eql(result)
+        expect(subject.auxiliary_statements(:authors).arel.to_sql).to eql(result)
       end
 
       it 'raises an error when no class has the auxiliary statement' do
-        expect{ subject.with(:comments).arel.to_sql }.to raise_error(ArgumentError)
+        expect{ subject.auxiliary_statements(:comments).arel.to_sql }.to raise_error(ArgumentError)
       end
     end
 
@@ -453,7 +453,7 @@ RSpec.describe 'AuxiliaryStatement' do
         result << ' WHERE "categories"."parent_id" = "all_categories"."id"'
         result << ' ) SELECT "courses".* FROM "courses" INNER JOIN "all_categories"'
         result << ' ON "all_categories"."parent_id" = "courses"."id"'
-        expect(subject.with(:all_categories).arel.to_sql).to eql(result)
+        expect(subject.auxiliary_statements(:all_categories).arel.to_sql).to eql(result)
       end
 
       it 'allows connect to be set to something different using a single value' do
@@ -473,7 +473,7 @@ RSpec.describe 'AuxiliaryStatement' do
         result << ' WHERE "categories"."parent_name" = "all_categories"."name"'
         result << ' ) SELECT "courses".* FROM "courses" INNER JOIN "all_categories"'
         result << ' ON "all_categories"."parent_id" = "courses"."id"'
-        expect(subject.with(:all_categories).arel.to_sql).to eql(result)
+        expect(subject.auxiliary_statements(:all_categories).arel.to_sql).to eql(result)
       end
 
       it 'allows a complete different set of connect' do
@@ -493,7 +493,7 @@ RSpec.describe 'AuxiliaryStatement' do
         result << ' WHERE "categories"."right" = "all_categories"."left"'
         result << ' ) SELECT "courses".* FROM "courses" INNER JOIN "all_categories"'
         result << ' ON "all_categories"."parent_id" = "courses"."id"'
-        expect(subject.with(:all_categories).arel.to_sql).to eql(result)
+        expect(subject.auxiliary_statements(:all_categories).arel.to_sql).to eql(result)
       end
 
       it 'allows using an union all' do
@@ -513,7 +513,7 @@ RSpec.describe 'AuxiliaryStatement' do
         result << ' WHERE "categories"."parent_id" = "all_categories"."id"'
         result << ' ) SELECT "courses".* FROM "courses" INNER JOIN "all_categories"'
         result << ' ON "all_categories"."parent_id" = "courses"."id"'
-        expect(subject.with(:all_categories).arel.to_sql).to eql(result)
+        expect(subject.auxiliary_statements(:all_categories).arel.to_sql).to eql(result)
       end
 
       it 'allows having a complete different initiator' do
@@ -532,7 +532,7 @@ RSpec.describe 'AuxiliaryStatement' do
         result << ' WHERE "categories"."parent_id" = "all_categories"."id"'
         result << ' ) SELECT "courses".* FROM "courses" INNER JOIN "all_categories"'
         result << ' ON "all_categories"."parent_id" = "courses"."id"'
-        expect(subject.with(:all_categories).arel.to_sql).to eql(result)
+        expect(subject.auxiliary_statements(:all_categories).arel.to_sql).to eql(result)
       end
 
       it 'can process the depth of the query' do
@@ -552,7 +552,7 @@ RSpec.describe 'AuxiliaryStatement' do
         result << ' WHERE "categories"."parent_id" = "all_categories"."id"'
         result << ' ) SELECT "courses".* FROM "courses" INNER JOIN "all_categories"'
         result << ' ON "all_categories"."parent_id" = "courses"."id"'
-        expect(subject.with(:all_categories).arel.to_sql).to eql(result)
+        expect(subject.auxiliary_statements(:all_categories).arel.to_sql).to eql(result)
       end
 
       it 'can process and expose the depth of the query' do
@@ -572,7 +572,7 @@ RSpec.describe 'AuxiliaryStatement' do
         result << ' WHERE "categories"."parent_id" = "all_categories"."id"'
         result << ' ) SELECT "courses".*, "all_categories"."d" AS category_depth FROM "courses" INNER JOIN "all_categories"'
         result << ' ON "all_categories"."parent_id" = "courses"."id"'
-        expect(subject.with(:all_categories).arel.to_sql).to eql(result)
+        expect(subject.auxiliary_statements(:all_categories).arel.to_sql).to eql(result)
       end
 
       it 'can process the path of the query' do
@@ -592,7 +592,7 @@ RSpec.describe 'AuxiliaryStatement' do
         result << ' WHERE "categories"."parent_id" = "all_categories"."id"'
         result << ' ) SELECT "courses".* FROM "courses" INNER JOIN "all_categories"'
         result << ' ON "all_categories"."parent_id" = "courses"."id"'
-        expect(subject.with(:all_categories).arel.to_sql).to eql(result)
+        expect(subject.auxiliary_statements(:all_categories).arel.to_sql).to eql(result)
       end
 
       it 'can process and expose the path of the query' do
@@ -612,7 +612,7 @@ RSpec.describe 'AuxiliaryStatement' do
         result << ' WHERE "categories"."parent_id" = "all_categories"."id"'
         result << ' ) SELECT "courses".*, "all_categories"."p" AS category_path FROM "courses" INNER JOIN "all_categories"'
         result << ' ON "all_categories"."parent_id" = "courses"."id"'
-        expect(subject.with(:all_categories).arel.to_sql).to eql(result)
+        expect(subject.auxiliary_statements(:all_categories).arel.to_sql).to eql(result)
       end
 
       it 'works with string queries' do
@@ -628,7 +628,7 @@ RSpec.describe 'AuxiliaryStatement' do
         result << ' SELECT * FROM categories, all_categories WHERE all_categories.a = b'
         result << ') SELECT "courses".* FROM "courses" INNER JOIN "all_categories"'
         result << ' ON "all_categories"."parent_id" = "courses"."id"'
-        expect(subject.with(:all_categories).arel.to_sql).to eql(result)
+        expect(subject.auxiliary_statements(:all_categories).arel.to_sql).to eql(result)
       end
 
       it 'raises an error when query is a string and there is no sub query' do
@@ -637,7 +637,7 @@ RSpec.describe 'AuxiliaryStatement' do
           cte.join id: :parent_id
         end
 
-        expect{ subject.with(:all_categories).arel.to_sql }.to raise_error(ArgumentError, /generate sub query/)
+        expect{ subject.auxiliary_statements(:all_categories).arel.to_sql }.to raise_error(ArgumentError, /generate sub query/)
       end
 
       it 'raises an error when sub query has an invalid type' do
@@ -647,7 +647,7 @@ RSpec.describe 'AuxiliaryStatement' do
           cte.join id: :parent_id
         end
 
-        expect{ subject.with(:all_categories).arel.to_sql }.to raise_error(ArgumentError, /query and sub query objects/)
+        expect{ subject.auxiliary_statements(:all_categories).arel.to_sql }.to raise_error(ArgumentError, /query and sub query objects/)
       end
 
       it 'raises an error when connect can be resolved automatically' do
@@ -657,7 +657,7 @@ RSpec.describe 'AuxiliaryStatement' do
           cte.join id: :parent_id
         end
 
-        expect{ subject.with(:all_categories).arel.to_sql }.to raise_error(ArgumentError, /setting up a proper way to connect/)
+        expect{ subject.auxiliary_statements(:all_categories).arel.to_sql }.to raise_error(ArgumentError, /setting up a proper way to connect/)
       end
     end
 
@@ -672,7 +672,7 @@ RSpec.describe 'AuxiliaryStatement' do
       result << ' SELECT COUNT(*) FROM "users"'
       result << ' INNER JOIN "comments" ON "comments"."user_id" = "users"."id"'
 
-      query = get_last_executed_query { subject.with(:comments).count }
+      query = get_last_executed_query { subject.auxiliary_statements(:comments).count }
       expect(query).to eql(result)
     end
 
@@ -687,7 +687,7 @@ RSpec.describe 'AuxiliaryStatement' do
       result << ' SELECT SUM("comments"."value") FROM "users"'
       result << ' INNER JOIN "comments" ON "comments"."user_id" = "users"."id"'
 
-      query = get_last_executed_query { subject.with(:comments).sum(comments: :value) }
+      query = get_last_executed_query { subject.auxiliary_statements(:comments).sum(comments: :value) }
       expect(query).to eql(result)
     end
 
@@ -696,11 +696,11 @@ RSpec.describe 'AuxiliaryStatement' do
         cte.query :string, String
       end
 
-      expect{ subject.with(:comments).arel.to_sql }.to raise_error(ArgumentError, /object types/)
+      expect{ subject.auxiliary_statements(:comments).arel.to_sql }.to raise_error(ArgumentError, /object types/)
     end
 
     it 'raises an error when trying to use a statement that is not defined' do
-      expect{ subject.with(:does_not_exist).arel.to_sql }.to raise_error(ArgumentError)
+      expect{ subject.auxiliary_statements(:does_not_exist).arel.to_sql }.to raise_error(ArgumentError)
     end
 
     it 'raises an error when using an invalid type of join' do
@@ -710,7 +710,7 @@ RSpec.describe 'AuxiliaryStatement' do
         cte.join_type :invalid
       end
 
-      expect{ subject.with(:comments).arel.to_sql }.to raise_error(ArgumentError)
+      expect{ subject.auxiliary_statements(:comments).arel.to_sql }.to raise_error(ArgumentError)
     end
   end
 
@@ -734,7 +734,7 @@ RSpec.describe 'AuxiliaryStatement' do
     end
 
     it 'has its query method' do
-      expect(subject).to respond_to(:with)
+      expect(subject).to respond_to(:auxiliary_statements)
     end
 
     it 'returns a relation when using the method' do
@@ -742,7 +742,7 @@ RSpec.describe 'AuxiliaryStatement' do
         cte.query Comment.all
         cte.attributes content: :comment_content
       end
-      expect(subject.with(:comments)).to be_a(ActiveRecord::Relation)
+      expect(subject.auxiliary_statements(:comments)).to be_a(ActiveRecord::Relation)
     end
   end
 
@@ -756,7 +756,7 @@ RSpec.describe 'AuxiliaryStatement' do
 
     it 'accepts simple auxiliary statement definition' do
       sample = klass.create(Comment.all)
-      query = subject.with(sample, select: {content: :comment_content}).arel.to_sql
+      query = subject.auxiliary_statements(sample, select: {content: :comment_content}).arel.to_sql
 
       result = 'WITH "comment" AS'
       result << ' (SELECT "comments"."content" AS comment_content, "comments"."user_id" FROM "comments")'
@@ -767,7 +767,7 @@ RSpec.describe 'AuxiliaryStatement' do
 
     it 'accepts a hash auxiliary statement definition' do
       sample = klass.create(query: Comment.all, select: {content: :comment_content})
-      query = subject.with(sample).arel.to_sql
+      query = subject.auxiliary_statements(sample).arel.to_sql
 
       result = 'WITH "comment" AS'
       result << ' (SELECT "comments"."content" AS comment_content, "comments"."user_id" FROM "comments")'
@@ -787,7 +787,7 @@ RSpec.describe 'AuxiliaryStatement' do
       result << ' SELECT "users".*, "all_comments"."comment_content" FROM "users"'
       result << ' INNER JOIN "all_comments" ON "all_comments"."user_id" = "users"."id"'
 
-      query = subject.with(sample).arel.to_sql
+      query = subject.auxiliary_statements(sample).arel.to_sql
       expect(query).to eql(result)
     end
 
@@ -801,7 +801,7 @@ RSpec.describe 'AuxiliaryStatement' do
 
       it 'accepts simple recursive auxiliary statement definition' do
         settings = { join: { id: :parent_id } }
-        query = subject.with(klass.create(Category.all), **settings).arel.to_sql
+        query = subject.auxiliary_statements(klass.create(Category.all), **settings).arel.to_sql
 
         result = 'WITH RECURSIVE "category" AS ('
         result << ' SELECT "categories"."id", "categories"."parent_id"'
@@ -818,7 +818,7 @@ RSpec.describe 'AuxiliaryStatement' do
 
       it 'accepts a connect option' do
         settings = { join: { id: :parent_id }, connect: { a: :b } }
-        query = subject.with(klass.create(Category.all), **settings).arel.to_sql
+        query = subject.auxiliary_statements(klass.create(Category.all), **settings).arel.to_sql
 
         result = 'WITH RECURSIVE "category" AS ('
         result << ' SELECT "categories"."a", "categories"."parent_id"'
@@ -835,7 +835,7 @@ RSpec.describe 'AuxiliaryStatement' do
 
       it 'accepts an union all option' do
         settings = { join: { id: :parent_id }, union_all: true }
-        query = subject.with(klass.create(Category.all), **settings).arel.to_sql
+        query = subject.auxiliary_statements(klass.create(Category.all), **settings).arel.to_sql
 
         result = 'WITH RECURSIVE "category" AS ('
         result << ' SELECT "categories"."id", "categories"."parent_id"'
@@ -852,7 +852,7 @@ RSpec.describe 'AuxiliaryStatement' do
 
       it 'accepts a sub query option' do
         settings = { join: { id: :parent_id }, sub_query: Category.where(active: true) }
-        query = subject.with(klass.create(Category.all), **settings).arel.to_sql
+        query = subject.auxiliary_statements(klass.create(Category.all), **settings).arel.to_sql
 
         result = 'WITH RECURSIVE "category" AS ('
         result << ' SELECT "categories"."id", "categories"."parent_id" FROM "categories"'
@@ -865,7 +865,7 @@ RSpec.describe 'AuxiliaryStatement' do
 
       it 'accepts a depth option' do
         settings = { join: { id: :parent_id }, with_depth: { name: 'a', start: 5, as: 'b' } }
-        query = subject.with(klass.create(Category.all), **settings).arel.to_sql
+        query = subject.auxiliary_statements(klass.create(Category.all), **settings).arel.to_sql
 
         result = 'WITH RECURSIVE "category" AS ('
         result << ' SELECT "categories"."id", "categories"."parent_id", 5 AS a'
@@ -882,7 +882,7 @@ RSpec.describe 'AuxiliaryStatement' do
 
       it 'accepts a path option' do
         settings = { join: { id: :parent_id }, with_path: { name: 'a', source: 'b', as: 'c' } }
-        query = subject.with(klass.create(Category.all), **settings).arel.to_sql
+        query = subject.auxiliary_statements(klass.create(Category.all), **settings).arel.to_sql
 
         result = 'WITH RECURSIVE "category" AS ('
         result << ' SELECT "categories"."id", "categories"."parent_id", ARRAY["categories"."b"]::varchar[] AS a'
@@ -926,7 +926,7 @@ RSpec.describe 'AuxiliaryStatement' do
     end
 
     it 'raises an error when trying to access query table before defining the query' do
-      expect{ subject.with(:comments).arel.to_sql }.to raise_error(StandardError)
+      expect{ subject.auxiliary_statements(:comments).arel.to_sql }.to raise_error(StandardError)
     end
   end
 end

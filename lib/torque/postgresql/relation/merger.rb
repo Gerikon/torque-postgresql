@@ -30,7 +30,7 @@ module Torque
             relation.distinct_on_values += other.distinct_on_values
           end
 
-          # Merge auxiliary statements activated by +with+
+          # Merge auxiliary statements activated by +auxiliary_statements+
           def merge_auxiliary_statements
             return if other.auxiliary_statements_values.blank?
 

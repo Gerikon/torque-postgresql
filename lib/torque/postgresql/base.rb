@@ -17,7 +17,7 @@ module Torque
       end
 
       module ClassMethods
-        delegate :distinct_on, :with, :itself_only, :cast_records, to: :all
+        delegate :distinct_on, :auxiliary_statements, :itself_only, :cast_records, to: :all
 
         # Make sure that table name is an instance of TableName class
         def reset_table_name
@@ -225,7 +225,7 @@ module Torque
           #     cte.join_type :left
           #   end
           #
-          # In case you don't use 'with(:last_comment)', you can do the
+          # In case you don't use 'auxiliary_statements(:last_comment)', you can do the
           # following.
           #   dynamic_attribute(:last_comment) do
           #     comments.order(id: :desc).first.content
