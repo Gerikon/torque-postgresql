@@ -14,20 +14,19 @@ ActiveRecord::Base.establish_connection(ENV['DATABASE_URL'] || {
   port: 5433,
 })
 
-cache = ActiveRecord::Base.connection.schema_cache
-cleaner = ->() do
-  cache.instance_variable_set(:@inheritance_loaded, false)
-  cache.instance_variable_set(:@inheritance_dependencies, {})
-  cache.instance_variable_set(:@inheritance_associations, {})
-end
+# cache = ActiveRecord::Base.connection.schema_cache
+# cleaner = ->() do
+#   cache.instance_variable_set(:@inheritance_loaded, false)
+#   cache.instance_variable_set(:@inheritance_dependencies, {})
+#   cache.instance_variable_set(:@inheritance_associations, {})
+# end
 
 load File.join('schema.rb')
 Dir.glob(File.join('spec', '{models,factories,mocks}', '**', '*.rb')) do |file|
   require file[5..-4]
 end
 
-cleaner.call
-I18n.load_path << Pathname.pwd.join('spec', 'en.yml')
+# cleaner.call
 RSpec.configure do |config|
   config.extend Mocks::CreateTable
   config.include Mocks::CacheQuery
@@ -39,7 +38,6 @@ RSpec.configure do |config|
 
   # Handles acton before rspec initialize
   config.before(:suite) do
-    Torque::PostgreSQL.config.schemas.whitelist << 'internal'
     ActiveSupport::Deprecation.try(:silenced=, true)
     DatabaseCleaner.clean_with(:truncation)
   end
@@ -57,6 +55,6 @@ RSpec.configure do |config|
   end
 
   config.before(:each) do
-    cleaner.call
+    # cleaner.call
   end
 end

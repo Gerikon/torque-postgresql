@@ -1,30 +1,15 @@
 # frozen_string_literal: true
 
-require_relative 'relation/distinct_on'
-require_relative 'relation/auxiliary_statement'
-require_relative 'relation/inheritance'
-
-require_relative 'relation/merger'
-
 module Torque
   module PostgreSQL
     module Relation
       extend ActiveSupport::Concern
 
-      include DistinctOn
-      include AuxiliaryStatement
-      include Inheritance
-
-      SINGLE_VALUE_METHODS = [:itself_only]
-      MULTI_VALUE_METHODS = [:distinct_on, :auxiliary_statements, :cast_records, :select_extra]
+      SINGLE_VALUE_METHODS = []
+      MULTI_VALUE_METHODS = []
       VALUE_METHODS = SINGLE_VALUE_METHODS + MULTI_VALUE_METHODS
 
       ARColumn = ::ActiveRecord::ConnectionAdapters::PostgreSQL::Column
-
-      # :nodoc:
-      def select_extra_values; get_value(:select_extra); end
-      # :nodoc:
-      def select_extra_values=(value); set_value(:select_extra, value); end
 
       # Resolve column name when calculating models, allowing the column name to
       # be more complex while keeping the query selection quality
@@ -86,12 +71,6 @@ module Torque
 
       private
 
-        def build_arel(*)
-          arel = super
-          arel.project(*select_extra_values) if select_values.blank?
-          arel
-        end
-
         # Compatibility method with 5.0
         unless ActiveRecord::Relation.method_defined?(:get_value)
           def get_value(name)
@@ -107,22 +86,6 @@ module Torque
           end
         end
 
-      module ClassMethods
-        # Easy and storable way to access the name used to get the record table
-        # name when using inheritance tables
-        def _record_class_attribute
-          @@record_class ||= Torque::PostgreSQL.config
-            .inheritance.record_class_column_name.to_sym
-        end
-
-        # Easy and storable way to access the name used to get the indicater of
-        # auto casting inherited records
-        def _auto_cast_attribute
-          @@auto_cast ||= Torque::PostgreSQL.config
-            .inheritance.auto_cast_column_name.to_sym
-        end
-      end
-
       # When a relation is created, force the attributes to be defined,
       # because the type mapper may add new methods to the model. This happens
       # for the given model Klass and its inheritances
@@ -133,14 +96,6 @@ module Torque
           klass.superclass.send(:relation) if klass.define_attribute_methods &&
             klass.superclass != ActiveRecord::Base && !klass.superclass.abstract_class?
         end
-
-        # Allow extra keyword arguments to be sent to +InsertAll+
-        if Torque::PostgreSQL::AR720
-          def upsert_all(attributes, **xargs)
-            xargs = xargs.reverse_merge(on_duplicate: :update)
-            ::ActiveRecord::InsertAll.execute(self, attributes, **xargs)
-          end
-        end
       end
     end
 
@@ -148,16 +103,5 @@ module Torque
     # the operation of ActiveRecord Relation
     ActiveRecord::Relation.include Relation
     ActiveRecord::Relation.prepend Relation::Initializer
-
-    warn_level = $VERBOSE
-    $VERBOSE = nil
-
-    ActiveRecord::Relation::SINGLE_VALUE_METHODS       += Relation::SINGLE_VALUE_METHODS
-    ActiveRecord::Relation::MULTI_VALUE_METHODS        += Relation::MULTI_VALUE_METHODS
-    ActiveRecord::Relation::VALUE_METHODS              += Relation::VALUE_METHODS
-    ActiveRecord::QueryMethods::VALID_UNSCOPING_VALUES += %i[cast_records itself_only
-      distinct_on auxiliary_statements]
-
-    $VERBOSE = warn_level
   end
 end

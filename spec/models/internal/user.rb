@@ -1,5 +1,5 @@
 module Internal
   class User < ActiveRecord::Base
-    self.schema = 'internal'
+    # self.schema = 'internal'
   end
 end

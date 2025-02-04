@@ -174,4 +174,4 @@ ActiveRecord::Schema.define(version: version) do
   add_foreign_key "posts", "authors"
 end
 
-ActiveRecord::Base.connection.schema_cache.clear!
+# ActiveRecord::Base.connection.schema_cache.clear!
